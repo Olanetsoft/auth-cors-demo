@@ -14,10 +14,10 @@ app.use(express.json({ limit: "50mb" }));
 app.post("/register", async (req, res) => {
   try {
     // Get user input
-    const { first_name, last_name, email, password } = req.body;
+    const { firstName, lastName, email, password } = req.body;
 
     // Validate user input
-    if (!(email && password && first_name && last_name)) {
+    if (!(email && password && firstName && lastName)) {
       res.status(400).send("All input is required");
     }
 
@@ -30,14 +30,14 @@ app.post("/register", async (req, res) => {
     }
 
     //Encrypt user password
-    encryptedPassword = await bcrypt.hash(password, 10);
+    encryptedUserPassword = await bcrypt.hash(password, 10);
 
     // Create user in our database
     const user = await User.create({
-      first_name,
-      last_name,
+      first_name: firstName,
+      last_name: lastName,
       email: email.toLowerCase(), // sanitize: convert email to lowercase
-      password: encryptedPassword,
+      password: encryptedUserPassword,
     });
 
     // Create token
@@ -45,7 +45,7 @@ app.post("/register", async (req, res) => {
       { user_id: user._id, email },
       process.env.TOKEN_KEY,
       {
-        expiresIn: "2h",
+        expiresIn: "5h",
       }
     );
     // save user token
@@ -76,7 +76,7 @@ app.post("/login", async (req, res) => {
         { user_id: user._id, email },
         process.env.TOKEN_KEY,
         {
-          expiresIn: "2h",
+          expiresIn: "5h",
         }
       );
 
@@ -84,16 +84,16 @@ app.post("/login", async (req, res) => {
       user.token = token;
 
       // user
-      res.status(200).json(user);
+      return res.status(200).json(user);
     }
-    res.status(400).send("Invalid Credentials");
+    return res.status(400).send("Invalid Credentials");
   } catch (err) {
     console.log(err);
   }
 });
 
 app.get("/welcome", auth, (req, res) => {
-  res.status(200).send("Welcome 🙌 ");
+  res.status(200).send("Welcome to FreeCodeCamp 🙌");
 });
 
 // This should be the last route else any after it won't work
